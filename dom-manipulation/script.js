@@ -170,8 +170,83 @@ exportQuotesBtn.addEventListener('click', exportQuotes);
 importQuotesBtn.addEventListener('click', () => importFileInput.click());
 importFileInput.addEventListener('change', importFromJsonFile);
 
+const SYNC_INTERVAL_MS = 30000; // 30 seconds sync interval
+const syncNotification = document.getElementById('syncNotification');
+const syncMessage = document.getElementById('syncMessage');
+const manualSyncBtn = document.getElementById('manualSyncBtn');
+
+function fetchServerQuotes() {
+  // Simulate fetching quotes from a server using JSONPlaceholder or mock API
+  // Here we simulate with a static example or could use fetch to a real mock API
+  // For demonstration, we return a Promise resolving to a sample array
+  return new Promise((resolve) => {
+    // Simulated server quotes (could be fetched from a real API)
+    const serverQuotes = [
+      { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Motivation" },
+      { text: "Life is 10% what happens to us and 90% how we react to it.", category: "Life" },
+      { text: "Do not watch the clock. Do what it does. Keep going.", category: "Motivation" },
+      { text: "Success is not final, failure is not fatal: It is the courage to continue that counts.", category: "Success" },
+      // Add a new quote to simulate server update
+      { text: "In the middle of every difficulty lies opportunity.", category: "Motivation" }
+    ];
+    setTimeout(() => resolve(serverQuotes), 1000); // simulate network delay
+  });
+}
+
+function quotesAreEqual(q1, q2) {
+  return q1.text === q2.text && q1.category === q2.category;
+}
+
+function arraysEqual(arr1, arr2) {
+  if (arr1.length !== arr2.length) return false;
+  for (let i = 0; i < arr1.length; i++) {
+    if (!quotesAreEqual(arr1[i], arr2[i])) return false;
+  }
+  return true;
+}
+
+function syncQuotesWithServer() {
+  fetchServerQuotes().then(serverQuotes => {
+    // Compare serverQuotes with local quotes
+    if (!arraysEqual(serverQuotes, quotes)) {
+      // Conflict or update detected, resolve by favoring server data
+      quotes.length = 0;
+      quotes.push(...serverQuotes);
+      saveQuotes();
+      populateCategories();
+      displayRandomQuote();
+      showSyncNotification('Quotes updated from server. Conflicts resolved in favor of server data.');
+    } else {
+      showSyncNotification('Quotes are up to date with server.');
+    }
+  }).catch(err => {
+    showSyncNotification('Failed to sync with server.');
+    console.error('Sync error:', err);
+  });
+}
+
+function showSyncNotification(message) {
+  syncMessage.textContent = message;
+  syncNotification.style.display = 'block';
+  // Hide notification after 5 seconds
+  setTimeout(() => {
+    syncNotification.style.display = 'none';
+  }, 5000);
+}
+
+manualSyncBtn.addEventListener('click', () => {
+  showSyncNotification('Manual sync started...');
+  syncQuotesWithServer();
+});
+
 // Initialize
 loadQuotes();
 populateCategories();
 displayRandomQuote();
 createAddQuoteForm();
+
+// Start periodic sync
+setInterval(syncQuotesWithServer, SYNC_INTERVAL_MS);
+
+// Initial sync on load
+syncQuotesWithServer();
