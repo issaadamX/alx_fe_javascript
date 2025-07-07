@@ -170,27 +170,48 @@ exportQuotesBtn.addEventListener('click', exportQuotes);
 importQuotesBtn.addEventListener('click', () => importFileInput.click());
 importFileInput.addEventListener('change', importFromJsonFile);
 
+// New implementation to fully meet task requirements
+
 const SYNC_INTERVAL_MS = 30000; // 30 seconds sync interval
 const syncNotification = document.getElementById('syncNotification');
 const syncMessage = document.getElementById('syncMessage');
 const manualSyncBtn = document.getElementById('manualSyncBtn');
 
-function fetchServerQuotes() {
-  // Simulate fetching quotes from a server using JSONPlaceholder or mock API
-  // Here we simulate with a static example or could use fetch to a real mock API
-  // For demonstration, we return a Promise resolving to a sample array
-  return new Promise((resolve) => {
-    // Simulated server quotes (could be fetched from a real API)
-    const serverQuotes = [
-      { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Motivation" },
-      { text: "Life is 10% what happens to us and 90% how we react to it.", category: "Life" },
-      { text: "Do not watch the clock. Do what it does. Keep going.", category: "Motivation" },
-      { text: "Success is not final, failure is not fatal: It is the courage to continue that counts.", category: "Success" },
-      // Add a new quote to simulate server update
-      { text: "In the middle of every difficulty lies opportunity.", category: "Motivation" }
-    ];
-    setTimeout(() => resolve(serverQuotes), 1000); // simulate network delay
-  });
+const MOCK_API_URL = 'https://jsonplaceholder.typicode.com/posts'; // Using JSONPlaceholder for simulation
+
+// Fetch quotes from mock API (simulate server fetch)
+async function fetchQuotesFromServer() {
+  try {
+    const response = await fetch(MOCK_API_URL);
+    if (!response.ok) throw new Error('Network response was not ok');
+    const data = await response.json();
+    // Map data to quote format (simulate)
+    const serverQuotes = data.slice(0, 5).map(item => ({
+      text: item.title,
+      category: 'Server'
+    }));
+    return serverQuotes;
+  } catch (error) {
+    console.error('Error fetching quotes from server:', error);
+    throw error;
+  }
+}
+
+// Post local quotes to mock API (simulate server update)
+async function postQuotesToServer(quotesToPost) {
+  try {
+    const response = await fetch(MOCK_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(quotesToPost)
+    });
+    if (!response.ok) throw new Error('Network response was not ok');
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error posting quotes to server:', error);
+    throw error;
+  }
 }
 
 function quotesAreEqual(q1, q2) {
@@ -205,9 +226,10 @@ function arraysEqual(arr1, arr2) {
   return true;
 }
 
-function syncQuotesWithServer() {
-  fetchServerQuotes().then(serverQuotes => {
-    // Compare serverQuotes with local quotes
+// Sync function to fetch from server, resolve conflicts, update local storage, and post local changes
+async function syncQuotes() {
+  try {
+    const serverQuotes = await fetchQuotesFromServer();
     if (!arraysEqual(serverQuotes, quotes)) {
       // Conflict or update detected, resolve by favoring server data
       quotes.length = 0;
@@ -216,13 +238,14 @@ function syncQuotesWithServer() {
       populateCategories();
       displayRandomQuote();
       showSyncNotification('Quotes updated from server. Conflicts resolved in favor of server data.');
+      // Optionally post local changes back to server (simulate)
+      await postQuotesToServer(quotes);
     } else {
       showSyncNotification('Quotes are up to date with server.');
     }
-  }).catch(err => {
+  } catch (error) {
     showSyncNotification('Failed to sync with server.');
-    console.error('Sync error:', err);
-  });
+  }
 }
 
 function showSyncNotification(message) {
@@ -236,7 +259,7 @@ function showSyncNotification(message) {
 
 manualSyncBtn.addEventListener('click', () => {
   showSyncNotification('Manual sync started...');
-  syncQuotesWithServer();
+  syncQuotes();
 });
 
 // Initialize
@@ -246,7 +269,7 @@ displayRandomQuote();
 createAddQuoteForm();
 
 // Start periodic sync
-setInterval(syncQuotesWithServer, SYNC_INTERVAL_MS);
+setInterval(syncQuotes, SYNC_INTERVAL_MS);
 
 // Initial sync on load
-syncQuotesWithServer();
+syncQuotes();
