@@ -12,7 +12,11 @@
   <button id="exportQuotes">Export Quotes</button>
   <input type="file" id="importFile" accept=".json" style="display:none" />
   <button id="importQuotes">Import Quotes</button>
+  <select id="categoryFilter" onchange="filterQuotes()">
+    <option value="all">All Categories</option>
+  </select>
   <div id="addQuoteFormContainer"></div>
+
 
   <script src="script.js"></script>
 
