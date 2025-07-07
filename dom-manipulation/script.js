@@ -5,18 +5,18 @@ const quotes = [
   { text: "Success is not final, failure is not fatal: It is the courage to continue that counts.", category: "Success" }
 ];
 
-const quoteDisplay = document.getElementById('quoteDisplay');
+const quoteDisplay = document.getElementById('showRandomQuote');
 const newQuoteBtn = document.getElementById('newQuote');
 const addQuoteFormContainer = document.getElementById('addQuoteFormContainer');
 
 function displayRandomQuote() {
   if (quotes.length === 0) {
-    quoteDisplay.textContent = "No quotes available.";
+    quoteDisplay.innerHTML = "No quotes available.";
     return;
   }
   const randomIndex = Math.floor(Math.random() * quotes.length);
   const quote = quotes[randomIndex];
-  quoteDisplay.textContent = `"${quote.text}" — Category: ${quote.category}`;
+  quoteDisplay.innerHTML = `"${quote.text}" — Category: ${quote.category}`;
 }
 
 function createAddQuoteForm() {
