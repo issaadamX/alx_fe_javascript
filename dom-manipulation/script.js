@@ -241,7 +241,7 @@ async function syncQuotes() {
       // Optionally post local changes back to server (simulate)
       await postQuotesToServer(quotes);
     } else {
-      showSyncNotification('Quotes are up to date with server.');
+      showSyncNotification('Quotes synced with server!');
     }
   } catch (error) {
     showSyncNotification('Failed to sync with server.');
